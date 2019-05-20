@@ -57,7 +57,9 @@
 #include <QOpenGLTexture>
 #include <QtMath>
 
-class GeometryEngine : protected QOpenGLFunctions
+#include "transformational_object.h"
+
+class GeometryEngine : public Transformational_object, protected QOpenGLFunctions
 {
 public:    
     struct VertexData
@@ -68,20 +70,28 @@ public:
     };
 
     GeometryEngine();
+    GeometryEngine(const QVector<VertexData> &vertex_data, const QVector<GLuint> &index_data, const QImage texture_img );
     virtual ~GeometryEngine();
 
-    void init(const QVector<VertexData> &vert_data, const QVector<GLuint> &indexes, const QImage texture);
+    void init(const QVector<VertexData> &vert_data, const QVector<GLuint> &indexes, const QImage m_texture);
     void draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions);
     void translate(const QVector3D &translateVector);
+    void rotate(const QQuaternion &r );
+    void scale(const float & s);
+    void setGlobalTransform(const QMatrix4x4 & g);
 
-private:
-    void initCubeGeometry();
-
-    QOpenGLBuffer arrayBuf;
-    QOpenGLBuffer indexBuf;
-    QMatrix4x4 model_matrix;
-    QOpenGLTexture * texture;
+    // positions
     float radius;
+    QMatrix4x4 model_matrix;
+    QMatrix4x4 global_transform;
+    QVector3D translation;
+    QQuaternion rotation;
+    float scale_proportion;
+
+    // system
+    QOpenGLBuffer vertex_buf;
+    QOpenGLBuffer index_buf;
+    QOpenGLTexture * m_texture;
 };
 
 #endif // GEOMETRYENGINE_H

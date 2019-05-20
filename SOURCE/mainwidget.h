@@ -96,27 +96,29 @@ protected:
     void initCube(float radius);
 
 private:
+
+    // general position
     QMatrix4x4 projection;
-    QOpenGLShaderProgram program;
-    QBasicTimer timer;
-
-
-
-    QVector2D mousePressPosition;
-    QVector3D rotationAxis;
     QQuaternion rotation;
+    QVector2D mouse_position;
     float camera_offset_z;
     float angle_object;
     float angle_group1;
     float angle_group2;
     float angle_main;
 
+
+    // objects
     QVector<GeometryEngine *> objects;
     QVector<Group *> groups;
     QVector<Transformational *> transform_objects;
 
+    // system
+    QOpenGLShaderProgram program;
+    QBasicTimer timer;
+
     //delete
-    QOpenGLTexture *texture;
+    QOpenGLTexture *m_texture;
 };
 
 #endif // MAINWIDGET_H

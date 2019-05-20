@@ -56,112 +56,96 @@
 
 //! [0]
 GeometryEngine::GeometryEngine()
-    : indexBuf(QOpenGLBuffer::IndexBuffer), radius(1.0)
+    : index_buf(QOpenGLBuffer::IndexBuffer), m_texture(0)
 {
-    initializeOpenGLFunctions();
+     scale_proportion = 1.0f;
+     radius = 1.0f;
+}
 
-    // Generate 2 VBOs
-    arrayBuf.create();
-    indexBuf.create();
+GeometryEngine::GeometryEngine(const QVector<VertexData> &vertex_data, const QVector<GLuint> &index_data, const QImage texture_img )
+    : index_buf(QOpenGLBuffer::IndexBuffer), m_texture(0)
+{
+    global_transform.setToIdentity();
+    scale_proportion = 1.0f;
+    translation = QVector3D(-4.0f, 0.0f, 0.0f);
+    //rotation  = QQuaternion(0.0, 0.0, 0.0, 1.0);
+    rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0, 0.0, 1.0).normalized(), qCos(1));
+    //rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0, 1.0, 0.0).normalized(), qSin(30));
 
-    // Initializes cube geometry and transfers it to VBOs
-    initCubeGeometry();
+    init(vertex_data, index_data, texture_img);
 }
 
 GeometryEngine::~GeometryEngine()
 {
-    arrayBuf.destroy();
-    indexBuf.destroy();
+    vertex_buf.destroy();
+    index_buf.destroy();
 }
 
-void GeometryEngine::init(const QVector<GeometryEngine::VertexData> &vert_data, const QVector<GLuint> &indexes, const QImage texture)
+void GeometryEngine::init(const QVector<VertexData> &vert_data, const QVector<GLuint> &index_data, const QImage texture_img)
 {
+    if(vertex_buf.isCreated())
+        vertex_buf.destroy();
+    if(index_buf.isCreated())
+        index_buf.destroy();
+    if(m_texture != 0) {
+        if(m_texture->isCreated()){
+            delete m_texture;
+        }
+    }
 
-}
-//! [0]
-
-void GeometryEngine::initCubeGeometry()
-{
-    // For cube we would need only 8 vertices but we have to
-    // duplicate vertex for each face because texture coordinate
-    // is different.
-    VertexData vertices[] = {
-        // Vertex data for face 0
-        {QVector3D(-radius, -radius,  radius), QVector2D(0.0f, 0.0f)},  // v0
-        {QVector3D( radius, -radius,  radius), QVector2D(0.0f, 1.0f)}, // v1
-        {QVector3D(-radius,  radius,  radius), QVector2D(1.0f, 0.0f)},  // v2
-        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 1.0f)}, // v3
-
-        // Vertex data for face 1
-        {QVector3D( radius, -radius,  radius), QVector2D(0.0f, 0.0f)}, // v4
-        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 1.0f)}, // v5
-        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 0.0f)},  // v6
-        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 1.0f)}, // v7
-
-        // Vertex data for face 2
-        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v8
-        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 1.0f)},  // v9
-        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 0.0f)}, // v10
-        {QVector3D(-radius,  radius, -radius), QVector2D(1.0f, 1.0f)},  // v11
-
-        // Vertex data for face 3
-        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v12
-        {QVector3D(-radius, -radius,  radius), QVector2D(0.0f, 1.0f)},  // v13
-        {QVector3D(-radius,  radius, -radius), QVector2D(1.0f, 0.0f)}, // v14
-        {QVector3D(-radius,  radius,  radius), QVector2D(1.0f, 1.0f)},  // v15
-
-        // Vertex data for face 4
-        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v16
-        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 1.0f)}, // v17
-        {QVector3D(-radius, -radius,  radius), QVector2D(1.0f, 0.0f)}, // v18
-        {QVector3D( radius, -radius,  radius), QVector2D(1.0f, 1.0f)}, // v19
-
-        // Vertex data for face 5
-        {QVector3D(-radius,  radius,  radius), QVector2D(0.0f, 0.0f)}, // v20
-        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 0.0f)}, // v21
-        {QVector3D(-radius,  radius, -radius), QVector2D(0.0f, 1.0f)}, // v22
-        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 1.0f)}  // v23
-    };
-
-    // Indices for drawing cube faces using triangle strips.
-    // Triangle strips can be connected by duplicating indices
-    // between the strips. If connecting strips have opposite
-    // vertex order then last index of the first strip and first
-    // index of the second strip needs to be duplicated. If
-    // connecting strips have same vertex order then only last
-    // index of the first strip needs to be duplicated.
-    GLushort indices[] = {
-         0,  1,  2,  3,  3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
-         4,  4,  5,  6,  7,  7, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
-         8,  8,  9, 10, 11, 11, // Face 2 - triangle strip ( v8,  v9, v10, v11)
-        12, 12, 13, 14, 15, 15, // Face 3 - triangle strip (v12, v13, v14, v15)
-        16, 16, 17, 18, 19, 19, // Face 4 - triangle strip (v16, v17, v18, v19)
-        20, 20, 21, 22, 23      // Face 5 - triangle strip (v20, v21, v22, v23)
-    };
-
-//! [1]
+    // Generate 2 VBOs
     // Transfer vertex data to VBO 0
-    arrayBuf.bind();
-    arrayBuf.allocate(vertices, 24 * sizeof(VertexData));
+    vertex_buf.create();
+    vertex_buf.bind();
+    vertex_buf.allocate(vert_data.constData(), 24 * sizeof(VertexData));
+    vertex_buf.release();
 
     // Transfer index data to VBO 1
-    indexBuf.bind();
-    indexBuf.allocate(indices, 34 * sizeof(GLushort));
-//! [1]
+    index_buf.create();
+    index_buf.bind();
+    index_buf.allocate(index_data.constData(), 34 * sizeof(GLushort));
+    index_buf.release();
+//    m_texture = new QOpenGLTexture(texture_img.mirrored());
+    // Load cube.png image
+    m_texture = new QOpenGLTexture(QImage(":/cube.png").mirrored());
+
+    // Set nearest filtering mode for texture minification
+    m_texture->setMinificationFilter(QOpenGLTexture::Nearest);
+
+    // Set bilinear filtering mode for texture magnification
+    m_texture->setMagnificationFilter(QOpenGLTexture::Linear);
+
+    // Wrap texture coordinates by repeating
+    // f.ex. texture coordinate (1.1, 1.2) is same as (0.1, 0.2)
+    m_texture->setWrapMode(QOpenGLTexture::Repeat);
+
 }
 
-//! [2]
 void GeometryEngine::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
 {
-    // Tell OpenGL which VBOs to use
-    arrayBuf.bind();
-    indexBuf.bind();
+
+    if(!vertex_buf.isCreated() || !index_buf.isCreated())
+        return;
+
+    m_texture->bind(0);
+    // Tell OpenGL programmable pipeline how to locate vertex position data
+    program->setUniformValue("texture", 0);
 
     // Offset for position
-    quintptr offset = 0;
 
-    // Tell OpenGL programmable pipeline how to locate vertex position data
-    int vertexLocation = program->attributeLocation("a_position");
+    QMatrix4x4 model_matrix_tmp;
+    model_matrix_tmp.setToIdentity();
+    model_matrix_tmp.translate(translation);
+    model_matrix_tmp.rotate(rotation);
+    model_matrix_tmp.scale(scale_proportion);
+    model_matrix_tmp = global_transform * model_matrix_tmp;
+
+    program->setUniformValue("model_matrix", model_matrix_tmp);
+
+    vertex_buf.bind();
+
+    quintptr offset = 0;
+    int vertexLocation = program->attributeLocation("position");
     program->enableAttributeArray(vertexLocation);
     program->setAttributeBuffer(vertexLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
 
@@ -169,16 +153,43 @@ void GeometryEngine::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *funct
     offset += sizeof(QVector3D);
 
     // Tell OpenGL programmable pipeline how to locate vertex texture coordinate data
-    int texcoordLocation = program->attributeLocation("a_texcoord");
+    int texcoordLocation = program->attributeLocation("texcoord");
     program->enableAttributeArray(texcoordLocation);
     program->setAttributeBuffer(texcoordLocation, GL_FLOAT, offset, 2, sizeof(VertexData));
 
+    // Offset for normal coordinate
+    offset += sizeof(QVector2D);
+    // Tell OpenGL programmable pipeline how to locate normal coordinate data
+    int normalLocation = program->attributeLocation("normal");
+    program->enableAttributeArray(normalLocation);
+    program->setAttributeBuffer(normalLocation, GL_FLOAT, offset, 3, sizeof(VertexData));
+
+    // Tell OpenGL which VBOs to use
+    index_buf.bind();
+
     // Draw cube geometry using indices from VBO 1
-    functions->glDrawElements(GL_TRIANGLE_STRIP, 34, GL_UNSIGNED_SHORT, 0);
+    int a = 0;
+    a -=  index_buf.size();
+    functions->glDrawElements(GL_TRIANGLE_STRIP, index_buf.size(), GL_UNSIGNED_INT, 0);
+
+    // Tell OpenGL which VBOs to use
+    vertex_buf.release();
+    index_buf.release();
+    m_texture->release();
 }
 
-void GeometryEngine::translate(const QVector3D &translateVector)
+void GeometryEngine::translate(const QVector3D &t)
 {
-
+    translation += t;
 }
-//! [2]
+void GeometryEngine::rotate(const QQuaternion &r ) {
+    rotation *= r;
+}
+
+void GeometryEngine::scale(const float & s) {
+    scale_proportion *= s;
+}
+
+void GeometryEngine::setGlobalTransform(const QMatrix4x4 & g) {
+    global_transform = g;
+}
