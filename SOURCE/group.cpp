@@ -5,17 +5,22 @@ Group::Group()
     scale_proportion = 1.0f;
 }
 
+Group::~Group()
+{
+
+}
+
 void Group::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
 {
-    QMatrix4x4 local_matrix;
-    local_matrix.setToIdentity();
-    local_matrix.translate(translation);
-    local_matrix.rotate(rotation);
-    local_matrix.scale(scale_proportion);
-    local_matrix = global_transform * local_matrix;
+    QMatrix4x4 tmp_matrix;
+    tmp_matrix.setToIdentity();
+    tmp_matrix.translate(translation);
+    tmp_matrix.rotate(rotation);
+    tmp_matrix.scale(scale_proportion);
+    tmp_matrix = global_transform * tmp_matrix;
 
     for (int i = 0; i < objects.size(); i++){
-        objects[i]->setGlobalTransform(local_matrix);
+        objects[i]->setGlobalTransform(tmp_matrix);
         objects[i]->draw(program, functions);
     }
 }
@@ -38,5 +43,10 @@ void Group::scale(const float &s)
 void Group::setGlobalTransform(const QMatrix4x4 &g)
 {
     global_transform = g;
+}
+
+void Group::addObject(Transformational_object *object)
+{
+    objects.append(object);
 }
 

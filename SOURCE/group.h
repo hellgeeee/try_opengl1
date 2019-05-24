@@ -9,12 +9,15 @@ class Group : public Transformational_object
 {
 public:
     Group();
+    ~Group();
 
     void draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions);
     void translate(const QVector3D &translateVector);
     void rotate(const QQuaternion &r );
     void scale(const float & s);
     void setGlobalTransform(const QMatrix4x4 & g);
+
+    void addObject(Transformational_object *object);
 
 private:
     // positions

@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
     QApplication app(argc, argv);
 
     QSurfaceFormat format;
-    format.setSamples(20);
+    format.setSamples(16);
     format.setDepthBufferSize(24);
     QSurfaceFormat::setDefaultFormat(format);
 

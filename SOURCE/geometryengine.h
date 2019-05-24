@@ -51,38 +51,44 @@
 #ifndef GEOMETRYENGINE_H
 #define GEOMETRYENGINE_H
 
-#include <QOpenGLFunctions>
-#include <QOpenGLShaderProgram>
 #include <QOpenGLBuffer>
-#include <QOpenGLTexture>
+#include <QMatrix4x4>
+#include <QVector2D>
 #include <QtMath>
-
 #include "transformational_object.h"
 
-class GeometryEngine : public Transformational_object, protected QOpenGLFunctions
+class QOpenGLTexture;
+class QOpenGLFunctions;
+class QOpenGLShaderProgram;
+
+struct VertexData
 {
-public:    
-    struct VertexData
-    {
-        QVector3D position;
-        QVector2D texCoord;
-        QVector3D normal;
-    };
+    QVector3D vertexes_coord;
+    QVector2D texture_coord;
+    QVector3D normals;
+};
 
+class GeometryEngine : public Transformational_object
+{
+public:
+    GeometryEngine(QVector3D topleft);
     GeometryEngine();
-    GeometryEngine(const QVector<VertexData> &vertex_data, const QVector<GLuint> &index_data, const QImage texture_img );
-    virtual ~GeometryEngine();
+    ~GeometryEngine();
 
-    void init(const QVector<VertexData> &vert_data, const QVector<GLuint> &indexes, const QImage m_texture);
+    void init();
     void draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions);
-    void translate(const QVector3D &translateVector);
+    void translate(const QVector3D &t);
     void rotate(const QQuaternion &r );
     void scale(const float & s);
     void setGlobalTransform(const QMatrix4x4 & g);
 
-    // positions
+    // sizes
     float radius;
-    QMatrix4x4 model_matrix;
+
+
+
+
+    // positions
     QMatrix4x4 global_transform;
     QVector3D translation;
     QQuaternion rotation;
@@ -91,7 +97,12 @@ public:
     // system
     QOpenGLBuffer vertex_buf;
     QOpenGLBuffer index_buf;
-    QOpenGLTexture * m_texture;
+    QOpenGLTexture * texture;
+
+
+    void setGeometry();
+    QVector<GLuint> indices;
+    QVector<VertexData> vertices;
 };
 
 #endif // GEOMETRYENGINE_H

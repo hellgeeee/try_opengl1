@@ -71,12 +71,6 @@ class MainWidget : public QOpenGLWidget, protected QOpenGLFunctions
     Q_OBJECT
 
 public:
-    struct VertexData
-    {
-        QVector3D position;
-        QVector2D texCoord;
-        QVector3D normal;
-    };
     explicit MainWidget(QWidget *parent = 0);
     ~MainWidget();
 
@@ -92,8 +86,7 @@ protected:
     void paintGL() override;
 
     void initShaders();
-    void initTextures();
-    void initCube(float radius);
+    void initObjects();
 
 private:
 
@@ -118,7 +111,7 @@ private:
     QBasicTimer timer;
 
     //delete
-    QOpenGLTexture *m_texture;
+    QOpenGLTexture *texture;
 };
 
 #endif // MAINWIDGET_H
