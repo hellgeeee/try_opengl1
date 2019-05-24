@@ -61,23 +61,23 @@ GeometryEngine::GeometryEngine()
      radius = 1.0f;
 }
 
-GeometryEngine::GeometryEngine(QVector3D topleft)
+GeometryEngine::GeometryEngine(QVector3D top_left, float size)
     : index_buf(QOpenGLBuffer::IndexBuffer), texture(0)
 {
     scale_proportion = 1.0f;
-    radius = 1.0f;
+    radius = size;
 
     setGeometry();
 
     global_transform.setToIdentity();
     scale_proportion = 1.0f;
     translation = QVector3D(-6.0f, 0.0f, 0.0f);
-    rotation  = QQuaternion(cos(M_PI/2), 0.0, 0.0, 1.0);
-    //rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0, 0.0, 1.0).normalized(), qCos(1));
+    //rotation = QQuaternion::fromAxisAndAngle(QVector3D(1.0, 1.0, 1.0).normalized(), 60);
+    rotation = QQuaternion::fromAxisAndAngle(QVector3D(0.0, 0.0, 1.0).normalized(), 0);
     //rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0, 1.0, 0.0).normalized(), qSin(30));
 
     init();
-    translate(topleft);
+    translate(top_left);
 }
 
 GeometryEngine::~GeometryEngine()
@@ -114,7 +114,7 @@ void GeometryEngine::init()
     // Transfer index data to VBO 1
     index_buf.create();
     index_buf.bind();
-    index_buf.allocate(indices.constData(), indices.size() * sizeof(GLushort));
+    index_buf.allocate(indices.constData(), indices.size() * sizeof(GLuint));
     index_buf.release();
 
 //    m_texture = new QOpenGLTexture(texture_img.mirrored());
@@ -179,12 +179,14 @@ void GeometryEngine::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *funct
     vertex_buf.release();
     index_buf.release();
     texture->release();
+
 }
 
 void GeometryEngine::translate(const QVector3D &t)
 {
     translation += t;
 }
+
 void GeometryEngine::rotate(const QQuaternion &r ) {
     rotation *= r;
 }
@@ -204,40 +206,40 @@ void GeometryEngine::setGeometry()
     // is different.
     vertices = {
         // Vertex data for face 0
-        {QVector3D(-radius, -radius,  radius), QVector2D(0.0f, 0.0f)},  // v0
-        {QVector3D( radius, -radius,  radius), QVector2D(0.0f, 1.0f)}, // v1
-        {QVector3D(-radius,  radius,  radius), QVector2D(1.0f, 0.0f)},  // v2
-        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 1.0f)}, // v3
+        {QVector3D(-radius,  radius,  radius), QVector2D(0.0f, 1.0f), QVector3D(0.0, 0.0, 1.0)},
+        {QVector3D(-radius, -radius,  radius), QVector2D(0.0f, 0.0f),   QVector3D(0.0, 0.0, 1.0)},
+        {QVector3D( radius, radius,  radius), QVector2D(1.0f, 1.0f),  QVector3D(0.0, 0.0, 1.0)},
+        {QVector3D( radius,  -radius,  radius), QVector2D(1.0f, 0.0f),  QVector3D(0.0, 0.0, 1.0)},
 
         // Vertex data for face 1
-        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v4
-        {QVector3D( radius, -radius,  radius), QVector2D(0.0f, 1.0f)}, // v5
-        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 0.0f)}, // v6
-        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 1.0f)},  // v7
+        {QVector3D( radius, radius, -radius), QVector2D(0.0f, 1.0f), QVector3D(1.0, 0.0, .0)}, // v4
+        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 0.0f), QVector3D(1.0, 0.0, .0)}, // v5
+        {QVector3D( radius,  radius, radius), QVector2D(1.0f, 1.0f), QVector3D(1.0, 0.0, .0)}, // v6
+        {QVector3D( radius, -radius, radius), QVector2D(1.0f, 0.0f), QVector3D(1.0, 0.0, .0)},  // v7
 
         // Vertex data for face 2
-        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v8
-        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 1.0f)},  // v9
-        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 0.0f)}, // v10
-        {QVector3D(-radius,  radius, -radius), QVector2D(1.0f, 1.0f)},  // v11
+        {QVector3D(-radius,  radius,   -radius), QVector2D(0.0f, 1.0f), QVector3D(0.0, 0.0, -1.0)}, // v8
+        {QVector3D(-radius, -radius,   -radius), QVector2D(0.0f, 0.0f), QVector3D(0.0, 0.0, -1.0)},  // v9
+        {QVector3D( radius, radius,    -radius), QVector2D(1.0f, 1.0f), QVector3D(0.0, 0.0, -1.0)}, // v10
+        {QVector3D( radius,  -radius,  -radius), QVector2D(1.0f, 0.0f), QVector3D(0.0, 0.0, -1.0)},  // v11
 
         // Vertex data for face 3
-        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v12
-        {QVector3D(-radius, -radius,  radius), QVector2D(0.0f, 1.0f)},  // v13
-        {QVector3D(-radius,  radius, -radius), QVector2D(1.0f, 0.0f)}, // v14
-        {QVector3D(-radius,  radius,  radius), QVector2D(1.0f, 1.0f)},  // v15
+        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 0.0f), QVector3D(-1.0, 0.0, 0.0)}, // v12
+        {QVector3D(-radius, radius,  -radius), QVector2D(0.0f, 1.0f), QVector3D(-1.0, 0.0, 0.0)},  // v13
+        {QVector3D(-radius,  -radius, radius), QVector2D(1.0f, 0.0f), QVector3D(-1.0, 0.0, 0.0)}, // v14
+        {QVector3D(-radius,  radius,  radius), QVector2D(1.0f, 1.0f), QVector3D(-1.0, 0.0, 0.0)},  // v15
 
         // Vertex data for face 4
-        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 0.0f)}, // v16
-        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 1.0f)}, // v17
-        {QVector3D(-radius, -radius,  radius), QVector2D(1.0f, 0.0f)}, // v18
-        {QVector3D( radius, -radius,  radius), QVector2D(1.0f, 1.0f)}, // v19
+        {QVector3D(-radius, -radius, -radius), QVector2D(0.0f, 0.0f), QVector3D(0.0, -1.0, 0.0)}, // v16
+        {QVector3D( radius, -radius, -radius), QVector2D(0.0f, 1.0f), QVector3D(0.0, -1.0, 0.0)}, // v17
+        {QVector3D(-radius, -radius,  radius), QVector2D(1.0f, 0.0f), QVector3D(0.0, -1.0, 0.0)}, // v18
+        {QVector3D( radius, -radius,  radius), QVector2D(1.0f, 1.0f), QVector3D(0.0, -1.0, 0.0)}, // v19
 
         // Vertex data for face 5
-        {QVector3D(-radius,  radius,  radius), QVector2D(0.0f, 0.0f)}, // v20
-        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 0.0f)}, // v21
-        {QVector3D(-radius,  radius, -radius), QVector2D(0.0f, 1.0f)}, // v22
-        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 1.0f)}  // v23
+        {QVector3D(-radius,  radius,  radius), QVector2D(0.0f, 0.0f), QVector3D(0.0, 1.0, 0.0)}, // v20
+        {QVector3D( radius,  radius,  radius), QVector2D(1.0f, 0.0f), QVector3D(0.0, 1.0, 0.0)}, // v21
+        {QVector3D(-radius,  radius, -radius), QVector2D(0.0f, 1.0f), QVector3D(0.0, 1.0, 0.0)}, // v22
+        {QVector3D( radius,  radius, -radius), QVector2D(1.0f, 1.0f), QVector3D(0.0, 1.0, 0.0)}  // v23
     };
 
     // Indices for drawing cube faces using triangle strips.
@@ -248,14 +250,12 @@ void GeometryEngine::setGeometry()
     // connecting strips have same vertex order then only last
     // index of the first strip needs to be duplicated.
     indices = {
-       //  0,  1,  2,
-      //  2,  1, 3,     // Face 0 - triangle strip ( v0,  v1,  v2,  v3)
-//        0+4,  1+4,  2+4,
-        2+4,  1+4, 3+4//, // Face 1 - triangle strip ( v4,  v5,  v6,  v7)
-       // 0 + 8,  1 + 8,  2 + 8,  2 + 8,  1 + 8, 3 + 8, // Face 2 - triangle strip ( v8,  v9, v10, v11)
-       // 0 + 12,  1 + 12,  2 + 12,  2 + 12,  1 + 12, 3 + 12, // Face 3 - triangle strip (v12, v13, v14, v15)
-        //0 + 16,  1 + 16,  2 + 16,  2 + 16,  1 + 16, 3 + 16, // Face 4 - triangle strip (v16, v17, v18, v19)
-        //0 + 20,  1 + 20,  2 + 20,  2 + 20,  1 + 20, 3 + 20      // Face 5 - triangle strip (v20, v21, v22, v23)
+          0, 1, 2, 2, 1, 3,
+        0+4, 1+4, 2+4, 2+4, 1+4, 3+4,
+        0+8, 1+8, 2+8, 2+8, 1+8, 3+8,
+        0+12, 1+12, 2+12, 2+12, 1+12, 3+12,
+        0+16, 1+16, 2+16, 2+16, 1+16, 3+16,
+        0+20, 1+20, 2+20, 2+20, 1+20, 3+20
     };
 
 }

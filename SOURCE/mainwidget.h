@@ -52,6 +52,7 @@
 #define MAINWIDGET_H
 
 #include "geometryengine.h"
+#include "group.h"
 
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions>

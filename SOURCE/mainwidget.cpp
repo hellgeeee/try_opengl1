@@ -81,13 +81,10 @@ void MainWidget::wheelEvent(QWheelEvent *e)
     update();
 }
 
-void MainWidget::timerEvent(QTimerEvent *)
+void MainWidget::timerEvent(QTimerEvent *e)
 {
-    for(int i = 0; i < objects.size(); i++){
-        objects[i]->rotate( QQuaternion::fromAxisAndAngle(QVector3D(1.0, 0.0, 0.0), i*3.0) );
-    }
-    rotation *= QQuaternion::fromAxisAndAngle(QVector3D(0.0, 0.0, 1.0), 0.5);
-    angle_object += M_PI / 180;
+    for(int i = 0; i < groups.size(); i++)
+        groups[i]->animate(i);
     update();
 }
 
@@ -111,8 +108,21 @@ void MainWidget::initShaders()
 
 void MainWidget::initObjects()
 {
-    for(int i = 0; i < 3; i++)
-        objects.append(new GeometryEngine(QVector3D(i * 3, 0, 0)));
+    groups.append(new Group(QVector3D(0.0, 0.0, -3.0)));
+    groups.append(new Group(QVector3D(0.0, 0.0, 3.0)));
+    groups.append(new Group(QVector3D(1.0, 0.0, 9.0)));
+    groups.append(new Group(QVector3D(1.0, 0.0, 15.0)));
+
+    for(int group_num = 0; group_num < groups.size(); group_num++){
+        float translation = 0;
+        for(int i = 1; i < 10; i++){
+            float radius = 2.0/i;
+            groups[group_num]->addObject(new GeometryEngine(QVector3D(translation, 0, 0), radius ));
+            translation += -(radius + 2.0/(i+1));
+        }
+    }
+
+    //objects.append(new GeometryEngine(QVector3D(i * 3, 0, 0)));
 }
 
 void MainWidget::initializeGL()
@@ -131,9 +141,6 @@ void MainWidget::initializeGL()
 
     // add objects
     initObjects();
-    for(int i = 0; i < 3; i++){
-       ;// objects[i]->translate(QVector3D(i*5, 0, 0));
-    }
 
     timer.start(10, this);
 }
@@ -180,4 +187,7 @@ void MainWidget::paintGL()
     for(int i = 0; i < objects.size(); i++){
         objects[i]->draw(&program, context()->functions());
     }
+
+    for(int i = 0; i < groups.size(); i++)
+        groups[i]->draw(&program, context()->functions());
 }

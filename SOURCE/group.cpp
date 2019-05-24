@@ -1,7 +1,8 @@
 #include "group.h"
 
-Group::Group()
+Group::Group(QVector3D position)
 {
+    translation = position;
     scale_proportion = 1.0f;
 }
 
@@ -20,7 +21,7 @@ void Group::draw(QOpenGLShaderProgram *program, QOpenGLFunctions *functions)
     tmp_matrix = global_transform * tmp_matrix;
 
     for (int i = 0; i < objects.size(); i++){
-        objects[i]->setGlobalTransform(tmp_matrix);
+        objects[i]->setGlobalTransform(tmp_matrix); //?
         objects[i]->draw(program, functions);
     }
 }
@@ -49,4 +50,14 @@ void Group::addObject(Transformational_object *object)
 {
     objects.append(object);
 }
+void Group::animate(int time){
+    rotate(QQuaternion::fromAxisAndAngle(QVector3D(0.0, 0.0, 1.0), 0.2 * time));
 
+    float cur_sin = sin((live_time)/100);
+    int sign = cur_sin/abs(cur_sin);
+    for(int i = 0; i < objects.size(); i++){
+        objects[i]->rotate( QQuaternion::fromAxisAndAngle(QVector3D(1.0, 0.0, 0.0), i*2.5) );
+        objects[i]->translate(QVector3D(0.0, pow(i* cur_sin /20, 4) * sign, 0.0));
+    }
+    live_time++;
+}

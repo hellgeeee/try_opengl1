@@ -12,7 +12,6 @@ uniform highp float light_power;
 varying highp vec4 position;
 varying highp vec3 normal;
 
-//! [0]
 void main()
 {
     vec4 rezultColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -36,5 +35,4 @@ void main()
 
     gl_FragColor = rezultColor;
 }
-//! [0]
 

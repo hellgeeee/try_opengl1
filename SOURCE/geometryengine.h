@@ -71,7 +71,7 @@ struct VertexData
 class GeometryEngine : public Transformational_object
 {
 public:
-    GeometryEngine(QVector3D topleft);
+    GeometryEngine(QVector3D top_left, float size);
     GeometryEngine();
     ~GeometryEngine();
 
